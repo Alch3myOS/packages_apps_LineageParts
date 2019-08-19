@@ -64,11 +64,11 @@ public class Utilities {
     }
 
     public static String getDevice() {
-        return SystemProperties.get("ro.lineage.device", Build.PRODUCT);
+        return SystemProperties.get("ro.alch3my.device", Build.PRODUCT);
     }
 
     public static String getModVersion() {
-        return SystemProperties.get("ro.lineage.version", Build.DISPLAY);
+        return SystemProperties.get("ro.alch3my.build.version", Build.DISPLAY);
     }
 
     public static String digest(String input) {
