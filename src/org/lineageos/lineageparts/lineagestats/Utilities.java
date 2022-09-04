@@ -71,6 +71,19 @@ public class Utilities {
         return SystemProperties.get("ro.lunaris.build.version", Build.DISPLAY);
     }
 
+    public static String getBuildDate() {
+        return SystemProperties.get("ro.build.date", "Unknown");
+    }
+
+    public static String getAndroidVersion() {
+        return SystemProperties.get("ro.lunaris.version", Build.VERSION.RELEASE);
+    }
+
+    public static String getTag() {
+        String tag = "Official"; // TODO
+        return tag;
+    }
+
     public static String digest(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
