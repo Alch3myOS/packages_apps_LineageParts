@@ -53,8 +53,6 @@ public class StatusBarSettings extends SettingsPreferenceFragment {
     private static final int PULLDOWN_DIR_RIGHT = 1;
     private static final int PULLDOWN_DIR_LEFT = 2;
 
-    private static final String NETWORK_TRAFFIC_SETTINGS = "network_traffic_settings";
-
     private LineageSecureSettingListPreference mQsBrightnessSliderPosition;
     private LineageSecureSettingSwitchPreference mQsShowAutoBrightness;
     private LineageSystemSettingListPreference mQuickPulldown;
@@ -150,8 +148,7 @@ public class StatusBarSettings extends SettingsPreferenceFragment {
                     .getString(R.string.status_bar_am_pm_info));
         }
 
-        final boolean disallowCenteredClock = DeviceUtils.hasCenteredCutout(getActivity())
-                    || getNetworkTrafficStatus() != 0;
+        final boolean disallowCenteredClock = DeviceUtils.hasCenteredCutout(getActivity());
 
         // Adjust status bar preferences for RTL
         if (isRtlMode(getResources())) {
@@ -184,13 +181,5 @@ public class StatusBarSettings extends SettingsPreferenceFragment {
 
     private void enableStatusBarBatteryDependents(int batteryIconStyle) {
         mStatusBarBatteryShowPercent.setEnabled(batteryIconStyle != STATUS_BAR_BATTERY_STYLE_TEXT);
-    }
-
-    private int getNetworkTrafficStatus() {
-        int mode = LineageSettings.Secure.getInt(getActivity().getContentResolver(),
-                LineageSettings.Secure.NETWORK_TRAFFIC_MODE, 0);
-        int position = LineageSettings.Secure.getInt(getActivity().getContentResolver(),
-                LineageSettings.Secure.NETWORK_TRAFFIC_POSITION, /* Center */ 1);
-        return mode != 0 && position == 1 ? 1 : 0;
     }
 }
