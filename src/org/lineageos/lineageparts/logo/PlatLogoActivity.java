@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024-2025 Lunaris AOSP
+ * Copyright (C) 2026 Alch3myOS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,10 +76,15 @@ public class PlatLogoActivity extends Activity {
         
         private ArrayList<Pipe> pipes;
         private final int PIPE_WIDTH = 120;
-        private final int PIPE_GAP = 400;
         private final int PIPE_SPACING = 600;
+        
+        // Difficulty variables (no longer final)
+        private int pipeGap = 400;
         private float pipeSpeed = 8f;
         
+        private enum Difficulty { INITIATE, ADEPT, MASTER }
+        private Difficulty currentDifficulty = Difficulty.ADEPT;
+
         private boolean isGameRunning = false;
         private boolean isGameOver = false;
         private int score = 0;
@@ -104,10 +109,10 @@ public class PlatLogoActivity extends Activity {
             textPaint = new Paint();
             textPaint.setAntiAlias(true);
             textPaint.setColor(Color.WHITE);
-            textPaint.setTextSize(80);
             textPaint.setTextAlign(Paint.Align.CENTER);
             
-            prefs = context.getSharedPreferences("FlappyBirdGame", Context.MODE_PRIVATE);
+            prefs = context.getSharedPreferences("AscensionGame", Context.MODE_PRIVATE);
+
             highScore = prefs.getInt("highScore", 0);
             
             runnable = new Runnable() {
@@ -129,8 +134,26 @@ public class PlatLogoActivity extends Activity {
             screenHeight = h;
             initGame();
         }
+
+        private void applyDifficulty() {
+            switch (currentDifficulty) {
+                case INITIATE:
+                    pipeGap = 500; // Wide gap
+                    pipeSpeed = 6f; // Slower pillars
+                    break;
+                case ADEPT:
+                    pipeGap = 400; // Standard Flappy gap
+                    pipeSpeed = 8f; // Standard speed
+                    break;
+                case MASTER:
+                    pipeGap = 320; // Brutally tight gap
+                    pipeSpeed = 11f; // Fast pillars
+                    break;
+            }
+        }
         
         private void initGame() {
+            applyDifficulty();
             birdX = screenWidth / 4;
             birdY = screenHeight / 2;
             birdVelocity = 0;
@@ -145,7 +168,7 @@ public class PlatLogoActivity extends Activity {
         
         private void addPipe(float x) {
             int minHeight = 200;
-            int maxHeight = screenHeight - PIPE_GAP - 200;
+            int maxHeight = screenHeight - pipeGap - 200;
             int topHeight = random.nextInt(maxHeight - minHeight) + minHeight;
             pipes.add(new Pipe(x, topHeight));
         }
@@ -201,7 +224,7 @@ public class PlatLogoActivity extends Activity {
             
             Rect bottomPipeRect = new Rect(
                 (int)pipe.x, 
-                pipe.topHeight + PIPE_GAP, 
+                pipe.topHeight + pipeGap,
                 (int)(pipe.x + PIPE_WIDTH), 
                 screenHeight
             );
@@ -218,54 +241,74 @@ public class PlatLogoActivity extends Activity {
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
-            
-            canvas.drawColor(0xFF87CEEB);
+
+            // Background: Deep Magical Void
+            canvas.drawColor(0xFF0F0F1A);
             
             if (screenWidth == 0 || screenHeight == 0) return;
             
-            paint.setColor(0xFF228B22);
+            // Draw Obstacles (Crystalline Pillars)
             for (Pipe pipe : pipes) {
+                paint.setColor(0x4400E5FF);
                 canvas.drawRect(pipe.x, 0, pipe.x + PIPE_WIDTH, pipe.topHeight, paint);
-                canvas.drawRect(pipe.x, pipe.topHeight + PIPE_GAP, 
-                              pipe.x + PIPE_WIDTH, screenHeight, paint);
+                canvas.drawRect(pipe.x, pipe.topHeight + pipeGap, pipe.x + PIPE_WIDTH, screenHeight, paint);
                 
-                paint.setColor(0xFF32CD32);
-                canvas.drawRect(pipe.x, 0, pipe.x + 15, pipe.topHeight, paint);
-                canvas.drawRect(pipe.x, pipe.topHeight + PIPE_GAP, 
-                              pipe.x + 15, screenHeight, paint);
-                paint.setColor(0xFF228B22);
+                paint.setColor(0xFF00E5FF);
+                canvas.drawRect(pipe.x, 0, pipe.x + 5, pipe.topHeight, paint);
+                canvas.drawRect(pipe.x + PIPE_WIDTH - 5, 0, pipe.x + PIPE_WIDTH, pipe.topHeight, paint);
+                canvas.drawRect(pipe.x, pipe.topHeight + pipeGap, pipe.x + 5, screenHeight, paint);
+                canvas.drawRect(pipe.x + PIPE_WIDTH - 5, pipe.topHeight + pipeGap, pipe.x + PIPE_WIDTH, screenHeight, paint);
+                canvas.drawRect(pipe.x, pipe.topHeight - 10, pipe.x + PIPE_WIDTH, pipe.topHeight, paint);
+                canvas.drawRect(pipe.x, pipe.topHeight + pipeGap, pipe.x + PIPE_WIDTH, pipe.topHeight + pipeGap + 10, paint);
             }
             
-            paint.setColor(0xFFFFD700);
-            canvas.drawCircle(birdX + BIRD_SIZE / 2, birdY + BIRD_SIZE / 2, 
-                            BIRD_SIZE / 2, paint);
-            
-            paint.setColor(Color.BLACK);
-            canvas.drawCircle(birdX + BIRD_SIZE / 2 + 10, birdY + BIRD_SIZE / 2 - 5, 
-                            8, paint);
+            // Draw Avatar (Glowing Purple Orb)
+            paint.setColor(0x44B388FF); 
+            canvas.drawCircle(birdX + BIRD_SIZE / 2, birdY + BIRD_SIZE / 2, BIRD_SIZE / 2 + 15, paint);
+            paint.setColor(0xFFD0BCFF);
+            canvas.drawCircle(birdX + BIRD_SIZE / 2, birdY + BIRD_SIZE / 2, BIRD_SIZE / 2 - 5, paint);
             
             textPaint.setTextSize(80);
-            canvas.drawText("Score: " + score, screenWidth / 2, 100, textPaint);
+            textPaint.setColor(Color.WHITE);
+            canvas.drawText("Resonance: " + score, screenWidth / 2f, 100, textPaint);
             
             textPaint.setTextSize(50);
-            canvas.drawText("Best: " + highScore, screenWidth / 2, 180, textPaint);
+            canvas.drawText("Peak: " + highScore, screenWidth / 2f, 180, textPaint);
             
+            // Overlay Menus
             if (!isGameRunning) {
-                paint.setColor(0xAA000000);
+                paint.setColor(0xDD000000); 
                 canvas.drawRect(0, 0, screenWidth, screenHeight, paint);
                 
-                textPaint.setTextSize(100);
                 if (isGameOver) {
-                    canvas.drawText("Game Over!", screenWidth / 2, screenHeight / 2 - 100, textPaint);
+                    textPaint.setTextSize(90);
+                    textPaint.setColor(Color.WHITE);
+                    canvas.drawText("Transmutation Failed", screenWidth / 2f, screenHeight / 2f - 150, textPaint);
                     textPaint.setTextSize(60);
-                    canvas.drawText("Final Score: " + score, screenWidth / 2, screenHeight / 2, textPaint);
+                    canvas.drawText("Final Resonance: " + score, screenWidth / 2f, screenHeight / 2f - 50, textPaint);
                 } else {
-                    canvas.drawText("Flappy Bird", screenWidth / 2, screenHeight / 2 - 100, textPaint);
+                    textPaint.setTextSize(100);
+                    textPaint.setColor(Color.WHITE);
+                    canvas.drawText("Alch3my Ascension", screenWidth / 2f, screenHeight / 2f - 100, textPaint);
                 }
                 
+                // Start Instruction
                 textPaint.setTextSize(50);
-                canvas.drawText("Tap to " + (isGameOver ? "Restart" : "Start"), 
-                              screenWidth / 2, screenHeight / 2 + 100, textPaint);
+                textPaint.setColor(Color.LTGRAY);
+                canvas.drawText(isGameOver ? "Tap top half to Reinitialize" : "Tap top half to Ascend", 
+                               screenWidth / 2f, screenHeight / 2f + 50, textPaint);
+                               
+                // Difficulty Matrix UI
+                textPaint.setTextSize(40);
+                
+                paint.setColor(currentDifficulty == Difficulty.INITIATE ? 0xFF00E5FF : 0x88FFFFFF);
+                canvas.drawText("Initiate", screenWidth / 4f, screenHeight / 2f + 200, textPaint);
+                
+                paint.setColor(currentDifficulty == Difficulty.ADEPT ? 0xFF00E5FF : 0x88FFFFFF);
+                canvas.drawText("Adept", screenWidth / 2f, screenHeight / 2f + 200, textPaint);
+                
+                paint.setColor(currentDifficulty == Difficulty.MASTER ? 0xFF00E5FF : 0x88FFFFFF);
+                canvas.drawText("Master", 3 * screenWidth / 4f, screenHeight / 2f + 200, textPaint);
             }
         }
         
@@ -273,8 +316,21 @@ public class PlatLogoActivity extends Activity {
         public boolean onTouchEvent(MotionEvent event) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 if (!isGameRunning) {
-                    initGame();
-                    isGameRunning = true;
+                    // Check if click is in the lower half (Difficulty Selection)
+                    if (event.getY() > screenHeight / 2f + 100) {
+                        if (event.getX() < screenWidth / 3f) {
+                            currentDifficulty = Difficulty.INITIATE;
+                        } else if (event.getX() < 2 * screenWidth / 3f) {
+                            currentDifficulty = Difficulty.ADEPT;
+                        } else {
+                            currentDifficulty = Difficulty.MASTER;
+                        }
+                        invalidate(); // Force a redraw to show the newly highlighted difficulty
+                    } else {
+                        // Click is in the upper half -> Start the game
+                        initGame();
+                        isGameRunning = true;
+                    }
                 } else if (!isGameOver) {
                     birdVelocity = JUMP_STRENGTH;
                 }
