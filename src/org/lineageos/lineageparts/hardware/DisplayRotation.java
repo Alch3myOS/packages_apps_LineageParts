@@ -1,6 +1,6 @@
 /*
  * SPDX-FileCopyrightText: 2016 The CyanogenMod Project
- * SPDX-FileCopyrightText: 2017-2025 The LineageOS Project
+ * SPDX-FileCopyrightText: 2017-2026 The LineageOS Project
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -23,8 +23,7 @@ import com.android.settingslib.widget.MainSwitchPreference;
 import org.lineageos.lineageparts.R;
 import org.lineageos.lineageparts.SettingsPreferenceFragment;
 
-public class DisplayRotation extends SettingsPreferenceFragment
-        implements Preference.OnPreferenceChangeListener {
+public class DisplayRotation extends SettingsPreferenceFragment {
     private static final String TAG = "DisplayRotation";
 
     public static final String KEY_ACCELEROMETER = "accelerometer";
@@ -55,7 +54,11 @@ public class DisplayRotation extends SettingsPreferenceFragment
         PreferenceScreen prefSet = getPreferenceScreen();
 
         mAccelerometer = findPreference(KEY_ACCELEROMETER);
-        mAccelerometer.setOnPreferenceChangeListener(this);
+        mAccelerometer.setOnPreferenceChangeListener((preference, newValue) -> {
+            RotationPolicy.setRotationLockForAccessibility(requireActivity(),
+                    !(Boolean) newValue, /* caller= */ "DisplayRotation");
+            return true;
+        });
         mAccelerometer.setPersistent(false);
 
         mRotation0Pref = prefSet.findPreference(ROTATION_0_PREF);
@@ -111,16 +114,6 @@ public class DisplayRotation extends SettingsPreferenceFragment
             mode |= ROTATION_270_MODE;
         }
         return mode;
-    }
-
-    @Override
-    public boolean onPreferenceChange(Preference preference, Object newValue) {
-        if (preference == mAccelerometer) {
-            RotationPolicy.setRotationLockForAccessibility(requireActivity(),
-                    !(Boolean) newValue, /* caller= */ "DisplayRotation");
-        }
-
-        return true;
     }
 
     @Override
